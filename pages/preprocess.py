@@ -31,40 +31,73 @@ def app():
             else:
                 current_type = 'object'
 
-        print(name, current_type)
         column_options = ['numerical', 'categorical', 'object']
         current_index = column_options.index(current_type)
 
         ctype = col2.selectbox("Select Column Type",
                                options=column_options, index=current_index)
+
         e1, e2 = st.columns(2)
         e1.write("""Select your column name and the new type from the data.
                     To submit all the changes, click on *Submit changes* """)
         chg_type = e2.button("Change Column Type")
 
-        a1, a2, a3, a4, a5 = st.columns(5)
-        nas = a1.checkbox("Delete NA's", key=current_index)
-        dum = a2.checkbox("Dumify", key=current_index)
-        cst = a3.checkbox("Delete 3efsa", key=current_index)
-        if a5.button("Submit"):
-            print(nas, dum, cst)
-            if nas:
-                df.dropna(subset=[name])
+        col1, col2, col3, col4 = st.columns(4)
+        col1.metric(label="Total number of values", value=len(df[name]),
+                    delta_color="off")
+        col2.metric(label="Number of different values", value=len(np.unique(df[name])),
+                    delta_color="off")
+        dum = col3.checkbox("Dumify", key=current_index)
+
+        col1, col2, col3, col4 = st.columns(4)
+        col1.metric(label="Missing values", value=df[name].isna().sum(),
+                    delta_color="off")
+        col2.metric(label="Percentage of missing values", value=df[name].isna().sum()/len(df)*100,
+                    delta_color="off")
+        if df[name].isna().sum() > 0:
+            nas = col3.radio(
+                "Action:", ("Drop rows", "Drop column", "Replace values"))
+            if nas == 'Replace values':
+                if current_type == "numerical":
+                    rep = col4.radio(
+                        "With:", ("Average", "Value"))
+                elif current_type == "numerical":
+                    rep = col4.radio(
+                        "With:", ("Most frequent", "Interpolation", "A value"))
+                if rep == "Value":
+                    new_na_val = st.text_input("type value")
+
+        b1, b2, b3, b4, b5 = st.columns(5)
+        if b5.button("Submit"):
+
+            if nas == "Drop column":
+                df.dropna(subset=[name], inplace=True)
                 nas = False
+
+            if nas == "Drop rows":
+                df.dropna(subset=[name], axis=0, inplace=True)
+
+            if nas == "Replace values":
+                if rep == "Average":
+                    new_na_val = df[name].mean()
+                elif rep == "Interpolation":
+                    df[name] = df[name].interpolate(
+                        method='linear', limit_direction='forward')
+                elif rep == "Most frequent":
+                    new_na_val = df[name].mode()
+
+                df[name] = df[name].fillna(new_na_val)
+
             if dum:
                 df = pd.get_dummies(df, columns=[name])
                 dum = False
             if cst:
                 pass
 
-        b1, b2, b3, b4, b5 = st.columns(5)
-        apply = b3.button("Revert last change")
-        rev = b4.button("Revert all changes")
-        de = b5.button("Delete")
-        # st.write(
-        #     '<style>div.row-widget.stRadio > div{flex-direction:row;justify-content: center;} </style>', unsafe_allow_html=True)
-        # choose = st.radio("Pre treatement", ("Delete NA values",
-        #                   "Delete constant columns", "Dummify"))
+        apply = b2.button("Revert last change")
+        rev = b3.button("Revert all changes")
+        de = b4.button("Delete")
+
         if chg_type:
             if ctype == 'numerical':
                 df[name] = pd.to_numeric(df[name], errors='ignore')
