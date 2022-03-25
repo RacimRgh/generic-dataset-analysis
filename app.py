@@ -6,7 +6,7 @@ from PIL import Image
 # Custom imports
 from multipage import MultiPage
 # import your pages here
-from pages import load_data, preprocess, visualize_data, machine_learning, analysis_unidimensional, analysis_multidim
+from pages import load_data, preprocess, machine_learning, analysis_unidimensional, analysis_multidim
 
 # Create an instance of the app
 app = MultiPage()
