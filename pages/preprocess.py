@@ -7,6 +7,7 @@ import numpy as np
 
 
 def chg_type():
+    df_last = df.copy()
     if newtype == 'numerical':
         df[column_name] = pd.to_numeric(df[column_name], errors='ignore')
     elif newtype == 'object':
@@ -18,6 +19,7 @@ def chg_type():
 
 
 def onSubmit():
+    df_last = df.copy()
     if dummify:
         df = pd.get_dummies(df, columns=[column_name])
         dummify = False
@@ -126,6 +128,7 @@ def app():
             df.to_csv('data/data.csv', index=False)
             st.success("Your changes have been reverted!")
         if b4.button("Delete"):
+            df_last = df.copy()
             df.drop(column_name, inplace=True, axis=1)
             df.to_csv('data/data.csv', index=False)
             st.success("Your changes have been made!")
