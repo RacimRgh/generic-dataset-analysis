@@ -57,7 +57,7 @@ def app():
         df_last = df.copy()
 
         st.markdown("#### Change dataframe columns")
-
+        st.write([d for d in df.columns if df[d].isna().sum() > 0])
         # Use two column technique
         col1, col2 = st.columns(2)
 
@@ -88,7 +88,7 @@ def app():
                     delta_color="off")
         col2.metric(label="Number of different values", value=len(np.unique(df[column_name])),
                     delta_color="off")
-        dummify = col3.checkbox("Dumify", key=current_index)
+        dummify = col4.checkbox("Dumify", key=current_index)
 
         col1, col2, col3, col4 = st.columns(4)
         col1.metric(label="Missing values", value=df[column_name].isna().sum(),
