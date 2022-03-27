@@ -12,7 +12,6 @@ def app():
         st.markdown("Please upload data through `Upload Data` page!")
     else:
         df = pd.read_csv('data/data.csv')
-        # df_visual = pd.DataFrame(df)
         df_visual = df.copy()
 
         categorical = df_visual.select_dtypes(
