@@ -21,9 +21,11 @@ def chg_type():
 
 
 def dumm():
-    global dummify
+    global dummify, df, df_last
+    df_last = df.copy()
     if dummify:
         df = pd.get_dummies(df, columns=[column_name])
+        df.to_csv('data.csv', index=False)
         dummify = False
 
 
@@ -65,7 +67,6 @@ def onSubmit():
 
 
 def app():
-
     if 'data.csv' not in os.listdir(os.getcwd()):
         st.markdown("Please upload data through `Upload Data` page!")
     else:
@@ -106,39 +107,41 @@ def app():
         if e2.button("Change Column Type"):
             chg_type(newtype)
 
-        st.markdown("## List of columns with NA values: ")
-        col1, col2, col3, col4 = st.columns(4)
-        j = 1
-        for d in df.columns:
-            if df[d].isna().sum():
-                if j == 1:
-                    col1.write(d)
-                else:
-                    col2.write(d)
-                j *= -1
-        """
-        Check for NA values and show the choices if they exist
-            - Drop rows containing at least one NA value
-            - Drop the entire column containing NA values
-            - Replace the values with: Average/Most frequent, Interpolation (num), Typing
-        """
-        if len([d for d in df.columns if df[d].isna().sum()]) > 0:
-            del_na = col3.radio(
-                "Action:", ("Drop rows", "Drop columns", "Replace values"))
-            if del_na == 'Replace values':
-                replace_vals = col4.radio(
-                    "With:", ("Average/Most frequent", "Interpolation", "Value"))
-                if replace_vals == "Value":
-                    new_num_val = st.text_input("Replacement for numerical NA")
-                    new_cat_val = st.text_input(
-                        "Replacement for categorical NA")
+        if pd.isna(df).any().any():
+            st.markdown("## List of columns with NA values: ")
+            col1, col2, col3, col4 = st.columns(4)
+            j = 1
+            for d in df.columns:
+                if df[d].isna().sum():
+                    if j == 1:
+                        col1.write(d)
+                    else:
+                        col2.write(d)
+                    j *= -1
+            """
+            Check for NA values and show the choices if they exist
+                - Drop rows containing at least one NA value
+                - Drop the entire column containing NA values
+                - Replace the values with: Average/Most frequent, Interpolation (num), Typing
+            """
+            if len([d for d in df.columns if df[d].isna().sum()]) > 0:
+                del_na = col3.radio(
+                    "Action:", ("Drop rows", "Drop columns", "Replace values"))
+                if del_na == 'Replace values':
+                    replace_vals = col4.radio(
+                        "With:", ("Average/Most frequent", "Interpolation", "Value"))
+                    if replace_vals == "Value":
+                        new_num_val = st.text_input(
+                            "Replacement for numerical NA")
+                        new_cat_val = st.text_input(
+                            "Replacement for categorical NA")
 
-        b1, b2, b3, b4, b5 = st.columns(5)
-        if b5.button("Submit"):
-            with st.spinner("Please wait ..."):
-                onSubmit()
-                time.sleep(2)
-                st.success("Your changes have been made!")
+            b1, b2, b3, b4, b5 = st.columns(5)
+            if b5.button("Submit"):
+                with st.spinner("Please wait ..."):
+                    onSubmit()
+                    time.sleep(1)
+                    st.success("Your changes have been made!")
 
         st.markdown('## Ratio of different values and dummification')
 
@@ -147,7 +150,11 @@ def app():
                     delta_color="off")
         col2.metric(label="Number of different values", value=len(np.unique(df[column_name])),
                     delta_color="off")
-        dummify = col4.checkbox("Dumify", key=current_index)
+        if col3.button("Dummify current column", key=current_index):
+            with st.spinner("Please wait ..."):
+                dumm()
+                time.sleep(1)
+                st.success("Your changes have been made!")
 
         b1, b2, b3, b4, b5 = st.columns(5)
         if b2.button("Revert last change"):
@@ -158,8 +165,7 @@ def app():
             df = df_og.copy()
             df.to_csv('data.csv', index=False)
             st.success("Your changes have been reverted!")
-
-        if b4.button("Delete"):
+        if b4.button("Delete current column"):
             df_last = df.copy()
             df.drop(column_name, inplace=True, axis=1)
             df.to_csv('data.csv', index=False)

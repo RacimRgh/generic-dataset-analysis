@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import os
 from collections import Counter
+import plotly.express as px
 
 font = {
     'weight': 'bold',
@@ -58,6 +59,15 @@ def app():
         #         ax1.margins()
 
         #         st.pyplot(fig)
+        if len(num) > 0:
+            st.title("Distribution of numerical columns by numerical data")
+            for x in num:
+                for y in num:
+                    if x != y:
+                        fig3 = px.box(df, x=x, y=y,
+                                      notched=True)
+                        st.plotly_chart(fig3)
+
         if len(cats) > 1:
             st.header("Distribution of categorical columns by categorical data")
             uniques = [np.unique(df[c]) for c in cats]
