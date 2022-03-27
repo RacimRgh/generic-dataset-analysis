@@ -121,17 +121,17 @@ def app():
 
         if b2.button("Revert last change"):
             df = df_last.copy()
-            df.to_csv('data/data.csv', index=False)
+            df.to_csv('data.csv', index=False)
             st.success("Your changes have been Reverted!")
         if b3.button("Revert all changes"):
             df = df_og.copy()
-            df.to_csv('data/data.csv', index=False)
+            df.to_csv('data.csv', index=False)
             st.success("Your changes have been reverted!")
 
         if b4.button("Delete"):
             df_last = df.copy()
             df.drop(column_name, inplace=True, axis=1)
-            df.to_csv('data/data.csv', index=False)
+            df.to_csv('data.csv', index=False)
             st.success("Your changes have been made!")
 
         c = st.columns(6)
