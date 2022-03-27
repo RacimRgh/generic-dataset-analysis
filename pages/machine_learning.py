@@ -115,7 +115,7 @@ def app():
                 'Decision Tree',
                 'Support Vector Machines'])
             
-            y_pred = None
+            y_pred = []
 
             if model_selection == ' ':
                 pass
@@ -165,7 +165,7 @@ def app():
 
                 st.markdown("################Training ########################")
                 #st.multiselect("Choose the evaluation metrics")
-                if y_pred != None :
+                if y_pred != [] :
                     st.markdown(f"Accuracy Score: {accuracy_score(y_test, y_pred)}")
                     st.markdown(f"Recall Score: {recall_score(y_test, y_pred, average='macro')}")
                     st.markdown(f"Precision Score: {precision_score(y_test,y_pred,average='macro')}")
