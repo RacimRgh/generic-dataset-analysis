@@ -3,6 +3,7 @@ import os
 import pandas as pd
 from pandas.api.types import is_numeric_dtype
 import numpy as np
+import time
 
 
 def chg_type():
@@ -136,6 +137,7 @@ def app():
         if b5.button("Submit"):
             with st.spinner("Please wait ..."):
                 onSubmit()
+                time.sleep(2)
                 st.success("Your changes have been made!")
 
         st.markdown('## Ratio of different values and dummification')
