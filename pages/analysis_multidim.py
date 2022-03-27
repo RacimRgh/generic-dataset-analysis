@@ -18,8 +18,6 @@ def app():
             include=['object']).columns.values
         numerical = df_visual.select_dtypes(include=[np.number]).columns.values
         obj = df_visual.select_dtypes(include=['object']).columns.values
-        cat_groups = {}
-        unique_Category_val = {}
 
         corr = df.corr(method='pearson')
         fig2, ax2 = plt.subplots()
@@ -43,7 +41,6 @@ def app():
         #                  ax=ax[0], color="Orange", kde=False, bins=30)
 
         cats = st.multiselect("Select categorical columns ", categorical)
-        print(len(cats), len(num))
         # for c in cats:
         #     df_groupby = df.groupby(c)
         #     st.dataframe(df_groupby)
@@ -58,8 +55,22 @@ def app():
         if len(num) > 0 and len(cats) > 0:
             for c in cats:
                 uniques = np.unique(df[c])
-                df_grouped = df.groupby(c)
-                print(df_grouped.head())
+                dfs = []
+                # We get the dataframes by unique category
+                for u in uniques:
+                    dfs.append(df[df[c] == u])
+
+                for n in num:
+                    fig = plt.figure(figsize=(20, 20))
+                    ax = fig.add_subplot()
+                    # ax.figure
+                    binwidth = (max(df[n]) - min(df[n]))/50
+                    ax.hist([dfs[0][n], dfs[1][n]], bins=np.arange(min(df[n]), max(
+                        df[n]) + binwidth, binwidth), alpha=0.5, stacked=True, label=uniques, color=['r', 'g'])
+                    ax.legend(loc='upper right')
+                    ax.set_title(n)
+                    st.pyplot(fig)
+
             # fig1, ax1 = plt.subplots()
             # ax1.pie(sizes, explode=explode, labels=labels,
             #         autopct='%1.1f%%', shadow=False, startangle=0)
