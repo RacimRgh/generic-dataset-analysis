@@ -4,6 +4,7 @@ import joblib
 
 import pandas as pd
 import streamlit as st
+import numpy as np
 
 # Machine Learning
 from sklearn.model_selection import train_test_split
@@ -11,13 +12,20 @@ from sklearn.preprocessing import LabelEncoder
 from sklearn.linear_model import LinearRegression, LogisticRegression
 from sklearn.tree import DecisionTreeRegressor, DecisionTreeClassifier
 from sklearn.metrics import recall_score,accuracy_score,roc_auc_score,f1_score,precision_score
-
 from sklearn.svm import SVC
+
+import matplotlib.pyplot as plt 
+from sklearn.metrics import plot_confusion_matrix, plot_roc_curve, plot_precision_recall_curve
+from sklearn.metrics import confusion_matrix
 
 # Custom classes
 import os
 from pandas.api.types import is_numeric_dtype
 
+# import sys  
+# sys.path.append("../utils/")
+
+from utils.visualisation  import plot_metrics
 
 def app():
     """This application helps in running machine learning models without having to write explicit code 
@@ -56,6 +64,8 @@ def app():
             pred_type = st.radio("Select the type of process you want to run.",
                                  options=["Regression", "Classification"],
                                  help="Write about reg and classification")
+
+            
 
             # Add to model parameters
             params = {
@@ -136,11 +146,16 @@ def app():
 
 
                 elif model_selection == "Decision Tree":
+
                     st.markdown("#### Hyper parameters setting")
 
                     criterion = st.selectbox("Criterion",['gini','entropy'])
                     splitter = st.selectbox("Splitter",['best','random'])
                     max_depth = st.number_input("Max_depth")
+
+                    #Handling under 0 problem
+                    if max_depth <1:
+                        max_depth = 1
 
                     if max_depth != 0:
                         st.write(f"{max_depth}")
@@ -149,6 +164,8 @@ def app():
 
 
                 else : 
+
+                    #SVM Model
                     st.markdown("#### Hyper parameters setting")
                     kernel = st.selectbox("Kernel",['linear','poly','rbf','sigmoid','precomputed'])
                     gamma = st.selectbox("Gamma",['auto','scale'])
@@ -164,7 +181,8 @@ def app():
 
 
                 st.markdown("################Training ########################")
-                #st.multiselect("Choose the evaluation metrics")
+                
+                ##Evaluation Metrics
                 if y_pred != [] :
                     st.markdown(f"Accuracy Score: {accuracy_score(y_test, y_pred)}")
                     st.markdown(f"Recall Score: {recall_score(y_test, y_pred, average='macro')}")
@@ -172,42 +190,19 @@ def app():
                     st.markdown(f"F1 Score: {f1_score(y_test,y_pred,average='macro')}")
                     st.markdown(f"AUC: {roc_auc_score(y_test,y_pred,average='macro')}")
 
-            if pred_type == "Regression":
-                st.write("Running Regression Models on Sample")
+                    st.subheader("Confusion Matrix") 
+                    plot_confusion_matrix(model, X_test, y_test, display_labels=np.unique(y))
+                    st.pyplot()
 
-                # Table to store model and accurcy
-                model_r2 = []
 
-                # Linear regression model
-                lr_model = LinearRegression()
-                lr_model.fit(X_train, y_train)
-                lr_r2 = lr_model.score(X_test, y_test)
-                model_r2.append(['Linear Regression', lr_r2])
+                    st.subheader("ROC Curve") 
+                    plot_roc_curve(model, X_test, y_test)
+                    st.pyplot()
 
-                # Decision Tree model
-                model_r2.append(['Decision Tree Regression', 0])
 
-                # Make a dataframe of results
-                results = pd.DataFrame(model_r2, columns=['Models', 'R2 Score']).sort_values(
-                    by='R2 Score', ascending=False)
-                st.dataframe(results)
+                    st.subheader("Precision-Recall Curve")
+                    plot_precision_recall_curve(model, X_test, y_test)
+                    st.pyplot()
 
-            if pred_type == "Classification":
-                st.write("Running Classfication Models on Sample")
-
-                # Table to store model and accurcy
-                model_acc = []
-
-                # Linear regression model
-                lc_model = LogisticRegression()
-                lc_model.fit(X_train, y_train)
-                lc_acc = lc_model.score(X_test, y_test)
-                model_acc.append(['Logistic Regression', lc_acc])
-
-                # Decision Tree classification
-                model_acc.append(['Decision Tree Classification', 0])
-
-                # Make a dataframe of results
-                results = pd.DataFrame(model_acc, columns=['Models', 'Accuracy']).sort_values(
-                    by='Accuracy', ascending=False)
-                st.dataframe(results)
+                
+            
