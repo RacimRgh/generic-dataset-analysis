@@ -8,10 +8,10 @@ from collections import Counter
 
 
 def app():
-    if 'data.csv' not in os.listdir('data'):
+    if 'data.csv' not in os.listdir(os.getcwd()):
         st.markdown("Please upload data through `Upload Data` page!")
     else:
-        df = pd.read_csv('data/data.csv')
+        df = pd.read_csv('data.csv')
         df_visual = df.copy()
 
         categorical = df_visual.select_dtypes(

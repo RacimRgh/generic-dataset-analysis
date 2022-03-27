@@ -22,10 +22,10 @@ def app():
     """
 
     # Load the data
-    if 'data.csv' not in os.listdir('data'):
+    if 'data.csv' not in os.listdir(os.getcwd()):
         st.markdown("Please upload data through `Upload Data` page!")
     else:
-        data = pd.read_csv('data/data.csv')
+        data = pd.read_csv('data.csv')
 
         # Create the model parameters dictionary
         params = {}

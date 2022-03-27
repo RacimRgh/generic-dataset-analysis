@@ -6,18 +6,19 @@ import seaborn as sns
 import os
 from collections import Counter
 
-font = {'family': 'normal',
-        'weight': 'bold',
-        'size': 22}
+font = {
+    'weight': 'bold',
+    'size': 22
+}
 
 plt.rc('font', **font)
 
 
 def app():
-    if 'data.csv' not in os.listdir('data'):
+    if 'data.csv' not in os.listdir(os.getcwd()):
         st.markdown("Please upload data through `Upload Data` page!")
     else:
-        df = pd.read_csv('data/data.csv')
+        df = pd.read_csv('data.csv')
         df_visual = df.copy()
 
         categorical = df_visual.select_dtypes(

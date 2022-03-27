@@ -2,15 +2,14 @@ import streamlit as st
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-import seaborn as sns
 import os
 
 
 def app():
-    if 'data.csv' not in os.listdir('data'):
+    if 'data.csv' not in os.listdir(os.getcwd()):
         st.markdown("Please upload data through `Upload Data` page!")
     else:
-        df = pd.read_csv('data/data.csv')
+        df = pd.read_csv('data.csv')
         # df_visual = pd.DataFrame(df)
         df_visual = df.copy()
 

@@ -14,7 +14,7 @@ def chg_type():
         df = df.astype({column_name: str}, errors='ignore')
     elif newtype == 'categorical':
         df = df.astype({column_name: 'category'}, errors='ignore')
-    df.to_csv('data/data.csv', index=False)
+    df.to_csv('data.csv', index=False)
     st.success("Your changes have been made!")
 
 
@@ -41,18 +41,18 @@ def onSubmit():
             new_na_val = df[column_name].mode()
 
         df[column_name] = df[column_name].fillna(new_na_val)
-    df.to_csv('data/data.csv', index=False)
+    df.to_csv('data.csv', index=False)
     st.success("Your changes have been made!")
 
 
 def app():
 
-    if 'data.csv' not in os.listdir('data'):
+    if 'data.csv' not in os.listdir(os.getcwd()):
         st.markdown("Please upload data through `Upload Data` page!")
     else:
         global df, df_og, df_last, column_name, newtype, dummify, del_na, replace_vals, new_na_val
 
-        df = pd.read_csv('data/data.csv')
+        df = pd.read_csv('data.csv')
         df_og = df.copy()
         df_last = df.copy()
 
