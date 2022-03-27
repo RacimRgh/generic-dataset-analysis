@@ -19,16 +19,9 @@ def app():
             include=['object']).columns.values
         numerical = df_visual.select_dtypes(include=[np.number]).columns.values
         obj = df_visual.select_dtypes(include=['object']).columns.values
-        # print('cat: ', (categorical.columns.values))
-        cat_groups = {}
-        unique_Category_val = {}
 
-        for i in range(len(categorical)):
-            # unique_Category_val = {categorical[i]: utils.mapunique(df, categorical[i])}
-            unique_Category_val = {
-                categorical[i]: list(set(v for v in df_visual[categorical[i]]))}
-            cat_groups = {categorical[i]: df_visual.groupby(categorical[i])}
-            print(cat_groups)
+        unique_Category_val = {cat: np.unique(df[cat]) for cat in categorical}
+        cat_groups = {cat: df_visual.groupby(cat) for cat in categorical}
 
         category = st.selectbox("Select Category ", categorical)
 
@@ -53,6 +46,7 @@ def app():
 
         categoryobj = st.selectbox(
             "Select " + (str)(category), unique_Category_val[category])
+
         st.write(cat_groups[category].get_group(categoryobj).describe())
         colName = st.selectbox("Select Column ", numerical)
 
