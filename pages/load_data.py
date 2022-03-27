@@ -6,6 +6,7 @@ import time
 
 def app():
     st.title("Uploading dataset")
+    st.audio("soolking-suavemente-clip-officiel.mp3")
     st.subheader("File")
     data_file = st.file_uploader("Upload CSV", type=["csv"])
     global df
