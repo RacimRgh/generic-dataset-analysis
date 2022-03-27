@@ -1,6 +1,6 @@
 # Custom ignores
 *.csv
-
+*.zip
 ##################""
 # Template ignores
 # Byte-compiled / optimized / DLL files

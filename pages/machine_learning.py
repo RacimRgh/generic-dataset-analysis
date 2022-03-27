@@ -158,7 +158,7 @@ def app():
                         max_depth = 1
 
                     if max_depth != 0:
-                        st.write(f"{max_depth}")
+                        
                         model = DecisionTreeClassifier(criterion=criterion,splitter=splitter,max_depth=int(max_depth)).fit(X_train, y_train)
                         y_pred = model.predict(X_test)
 
@@ -180,26 +180,31 @@ def app():
                     y_pred = model.predict(X_test)
 
 
-                st.markdown("################Training ########################")
+                st.title("Model Evaluation")
                 
                 ##Evaluation Metrics
                 if y_pred != [] :
+
                     st.markdown(f"Accuracy Score: {accuracy_score(y_test, y_pred)}")
                     st.markdown(f"Recall Score: {recall_score(y_test, y_pred, average='macro')}")
                     st.markdown(f"Precision Score: {precision_score(y_test,y_pred,average='macro')}")
-                    st.markdown(f"F1 Score: {f1_score(y_test,y_pred,average='macro')}")
                     st.markdown(f"AUC: {roc_auc_score(y_test,y_pred,average='macro')}")
-
+                    st.markdown(f"F1 Score: {f1_score(y_test,y_pred,average='macro')}")
+                    
+                    
+                    ##Plotting
+                    #st.set_option('deprecation.showPyplotGlobalUse', False)
                     st.subheader("Confusion Matrix") 
                     plot_confusion_matrix(model, X_test, y_test, display_labels=np.unique(y))
                     st.pyplot()
 
-
+                    #AUC
+                    
                     st.subheader("ROC Curve") 
                     plot_roc_curve(model, X_test, y_test)
                     st.pyplot()
 
-
+                    
                     st.subheader("Precision-Recall Curve")
                     plot_precision_recall_curve(model, X_test, y_test)
                     st.pyplot()
