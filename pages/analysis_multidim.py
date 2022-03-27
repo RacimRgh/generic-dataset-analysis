@@ -6,6 +6,12 @@ import seaborn as sns
 import os
 from collections import Counter
 
+font = {'family': 'normal',
+        'weight': 'bold',
+        'size': 22}
+
+plt.rc('font', **font)
+
 
 def app():
     if 'data.csv' not in os.listdir('data'):
@@ -30,7 +36,6 @@ def app():
         ax2.set_title("Correlation Matrix")
         st.pyplot(fig2)
 
-        df_groupby = df.groupby('diagnosis')
         num = st.multiselect("Select numerical columns ", numerical)
         # for n in num:
         #     res = df.groupby("id")[n].value_counts() / \
@@ -47,12 +52,30 @@ def app():
         #     for u in np.unique(df[c]):
         #         fig = plt.figure(figsize=(20, 20))
         #         ax1 = fig.add_subplot()
-        #         ax1.set_title(u)
+        #         ax1.set_title(u)q
         #         ax1.pie(c.values(), labels=c.keys(), autopct='%2.f')
         #         ax1.margins()
 
         #         st.pyplot(fig)
+        if len(cats) > 1:
+            st.header("Distribution of categorical columns by categorical data")
+            uniques = [np.unique(df[c]) for c in cats]
+
+            for i in range(1, len(cats)):
+                st.subheader(f'{cats[0]} by {cats[i]}')
+                for u in uniques[0]:
+                    data_1 = df[df[cats[0]] == u][cats[i]]
+                    val_1 = Counter(data_1)
+
+                    fig = plt.figure(figsize=(20, 20))
+                    ax1 = fig.add_subplot()
+                    ax1.set_title(f'{cats[0]} : {u}')
+                    ax1.pie(val_1.values(), labels=val_1.keys(), autopct='%2.f')
+                    ax1.legend()
+                    st.pyplot(fig)
+
         if len(num) > 0 and len(cats) > 0:
+            st.title("Distribution of numerical columns by categorical data")
             for c in cats:
                 uniques = np.unique(df[c])
                 dfs = []
