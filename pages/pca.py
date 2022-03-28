@@ -13,7 +13,7 @@ def app():
     else:
         df = pd.read_csv('data.csv')
         df_visual = df.copy()
-
+        
         categorical = df_visual.select_dtypes(
             include=['object']).columns.values
         numerical = df_visual.select_dtypes(include=[np.number]).columns.values

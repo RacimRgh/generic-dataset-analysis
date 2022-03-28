@@ -12,12 +12,8 @@ class RegressionPlot:
                 y_true.min(), y_true.max()], 'k--', lw=4)
         ax.set_xlabel('Measured')
         ax.set_ylabel('Predicted')
-        ax.set_title('Mean Squared Error')
         ax.set_xlim(y_true.min(), y_true.max())
         ax.set_ylim(y_true.min(), y_true.max())
-        mse = mean_squared_error(y_true, y_pred)
-        ax.text(0.05, 0.95, 'MSE = {:.2f}'.format(mse),
-                transform=ax.transAxes, va='top')
         return fig
 
 

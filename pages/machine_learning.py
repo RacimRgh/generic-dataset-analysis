@@ -13,12 +13,11 @@ from sklearn.linear_model import LinearRegression, LogisticRegression
 from sklearn.tree import DecisionTreeRegressor, DecisionTreeClassifier
 from lightgbm import LGBMRegressor
 from sklearn.metrics import recall_score,accuracy_score,roc_auc_score,f1_score,precision_score
-from sklearn.svm import SVC
+from sklearn.metrics import r2_score, mean_absolute_error,explained_variance_score,mean_squared_error
 
 import matplotlib.pyplot as plt 
 from sklearn.metrics import plot_confusion_matrix, plot_roc_curve, plot_precision_recall_curve
 from sklearn.metrics import confusion_matrix
-
 # Custom classes
 import os
 from pandas.api.types import is_numeric_dtype
@@ -26,7 +25,7 @@ from pandas.api.types import is_numeric_dtype
 # import sys  
 # sys.path.append("../utils/")
 
-# from utils.visualisation  import plot_metrics
+from utils.visualisation  import RegressionPlot
 
 def app():
     """This application helps in running machine learning models without having to write explicit code 
@@ -125,7 +124,7 @@ def app():
             classification_model_list = [' ','Logistic Regression',
                 'Decision Tree',
                 'Support Vector Machines']
-            regression_model_list = [' ','Linear Regression','Decision Tree','Gradient Boosting']
+            regression_model_list = [' ','Linear Regression','Decision Tree Reg','Gradient Boosting Reg']
             # models_list need to change with the pred_type
             models_list = classification_model_list if pred_type == 'Classification' else regression_model_list
             model_selection = st.selectbox("Select a model ",models_list)
@@ -143,8 +142,6 @@ def app():
                     multiclass_opt = st.selectbox("Multiclass:",['auto','ovr','multinomial'])
 
                     model = LogisticRegression(random_state=0,penalty=penalty,solver=solver,max_iter=max_iter,multi_class=multiclass_opt).fit(X_train, y_train)
-                    y_pred = model.predict(X_test)
-                    recall = recall_score(y_test, y_pred, average='macro')
 
                 elif model_selection == "Decision Tree":
                     criterion = st.selectbox("Criterion",['gini','entropy'])
@@ -158,7 +155,6 @@ def app():
                     if max_depth != 0:
                         st.write(f"{max_depth}")
                         model = DecisionTreeClassifier(criterion=criterion,splitter=splitter,max_depth=int(max_depth)).fit(X_train, y_train)
-                        y_pred = model.predict(X_test)
 
                 elif model_selection == "Support Vector Machines" : 
                     #SVM Model
@@ -171,15 +167,14 @@ def app():
                         probability = False
 
                     model = SVC(kernel=kernel,gamma=gamma,probability=probability).fit(X_train, y_train)   
-                    y_pred = model.predict(X_test)
+
                 elif model_selection == 'Linear Regression':
                     cal_inter = st.checkbox('Fit intercept ?')
                     normalize = False
                     if cal_inter:
                         normalize = st.checkbox('Normalize data ?')
                     model = LinearRegression(fit_intercept=cal_inter,normalize=normalize).fit(X_train,y_train)
-                    y_pred = model.predict(X_test)
-                elif model_selection == 'Decision Tree':
+                elif model_selection == 'Decision Tree Reg':
                     criterion = st.selectbox("Criterion",['squared_error', 'friedman_mse', 'absolute_error', 'poisson'])
                     splitter = st.selectbox("Splitter",['best','random'])
                     max_depth = st.number_input("Max_depth")
@@ -190,9 +185,23 @@ def app():
                     if max_depth != 0:
                         st.write(f"{max_depth}")
                         model = DecisionTreeRegressor(criterion=criterion,splitter=splitter,max_depth=int(max_depth)).fit(X_train, y_train)
-                        y_pred = model.predict(X_test)
+                elif model_selection == 'Gradient Boosting Reg':
+                    learning_rate = st.selectbox('learning rate',[0.0001, 0.001, 0.01, 0.1, 1.0,'other'])
+                    if learning_rate =='other':
+                        learning_rate = st.number_input('insert the value of the learning rate',value=0.01)
+                    num_leaves = st.number_input('max number of leaves',value=32,min_value=1)
+                    n_estimators = st.number_input('Number of boosted trees to fit',value=100,min_value=1)
 
-
+                    if learning_rate =='other':
+                        learning_rate = st.number_input('insert the value of the learning rate')
+                    boosting_type = st.selectbox('Boosting type',['gbdt','dart','goss'],help="\
+                        Gradient Boosting Decision Tree (GDBT).\
+                        Dropouts meet Multiple Additive Regression Trees (DART).\
+                        Gradient-based One-Side Sampling (GOSS).")
+                    model = LGBMRegressor(boosting_type=boosting_type,learning_rate=float(learning_rate),num_leaves=num_leaves,n_estimators=n_estimators)\
+                        .fit(X_train,y_train)
+                y_pred = model.predict(X_test)
+                
                 st.markdown("################ Training ########################")
                 
                 ##Evaluation Metrics
@@ -223,5 +232,9 @@ def app():
                             plot_precision_recall_curve(model, X_test, y_test).figure_
                         )
                 else:
-                    st.markdown('comming soon')
-            
+                    #r2_score, mean_absolute_error,explained_variance_score,mean_squared_error
+                    st.markdown(f"R^2 score: {r2_score(y_test, y_pred)}")
+                    st.markdown(f"Mean absolute error Score: {mean_absolute_error(y_test,y_pred)}")
+                    st.markdown(f"Mean squared error Score: {mean_squared_error(y_test,y_pred)}")
+                    st.markdown(f"Explained variance score Score: {explained_variance_score(y_test,y_pred)}")
+                    st.pyplot( RegressionPlot.predict_regression_plot(y_test,y_pred) )

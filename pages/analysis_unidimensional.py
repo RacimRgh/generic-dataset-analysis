@@ -26,7 +26,7 @@ def app():
 
         sizes = (df_visual[category].value_counts() /
                  df_visual[category].count())
-
+        
         labels = sizes.keys()
 
         maxIndex = np.argmax(np.array(sizes))
