@@ -13,13 +13,10 @@ def app():
     else:
         df = pd.read_csv('data.csv')
         df_visual = df.copy()
-        
+
         categorical = df_visual.select_dtypes(
             include=['object']).columns.values
         numerical = df_visual.select_dtypes(include=[np.number]).columns.values
-        obj = df_visual.select_dtypes(include=['object']).columns.values
-        cat_groups = {}
-        unique_Category_val = {}
 
     # num = st.multiselect("Select numerical columns ", numerical)
     cats = st.selectbox("Select categorical columns ", categorical)

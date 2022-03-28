@@ -10,10 +10,8 @@ def app():
         st.markdown("Please upload data through `Upload Data` page!")
     else:
         df = pd.read_csv('data.csv')
-        # df_visual = pd.DataFrame(df)
         df_visual = df.copy()
 
-        # categorical,numerical,obj = utils.getColumnTypes(cols)
         categorical = df_visual.select_dtypes(
             include=['object']).columns.values
         numerical = df_visual.select_dtypes(include=[np.number]).columns.values
@@ -26,7 +24,7 @@ def app():
 
         sizes = (df_visual[category].value_counts() /
                  df_visual[category].count())
-        
+
         labels = sizes.keys()
 
         maxIndex = np.argmax(np.array(sizes))
@@ -50,5 +48,3 @@ def app():
         colName = st.selectbox("Select Column ", numerical)
 
         st.bar_chart(cat_groups[category].get_group(categoryobj)[colName])
-
-        # Code base to drop redundent columns
