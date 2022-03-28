@@ -25,7 +25,7 @@ from pandas.api.types import is_numeric_dtype
 # import sys  
 # sys.path.append("../utils/")
 
-from utils.visualisation  import plot_metrics
+# from utils.visualisation  import plot_metrics
 
 def app():
     """This application helps in running machine learning models without having to write explicit code 
@@ -121,10 +121,14 @@ def app():
 
             st.markdown("### Model Selection")
 
-            model_selection = st.selectbox("Select a model ",[' ','Logistic Regression',
+            classification_model_list = [' ','Logistic Regression',
                 'Decision Tree',
-                'Support Vector Machines'])
-            
+                'Support Vector Machines']
+            regression_model_list = [' ','Linear Regression']
+            # models_list need to change with the pred_type
+            models_list = classification_model_list if pred_type == 'Classification' else regression_model_list
+            model_selection = st.selectbox("Select a model ",models_list)
+
             y_pred = []
 
             if model_selection == ' ':
@@ -143,8 +147,6 @@ def app():
                     y_pred = model.predict(X_test)
                     recall = recall_score(y_test, y_pred, average='macro')
 
-
-
                 elif model_selection == "Decision Tree":
 
                     st.markdown("#### Hyper parameters setting")
@@ -162,9 +164,7 @@ def app():
                         model = DecisionTreeClassifier(criterion=criterion,splitter=splitter,max_depth=int(max_depth)).fit(X_train, y_train)
                         y_pred = model.predict(X_test)
 
-
-                else : 
-
+                elif model_selection == "Support Vector Machines" : 
                     #SVM Model
                     st.markdown("#### Hyper parameters setting")
                     kernel = st.selectbox("Kernel",['linear','poly','rbf','sigmoid','precomputed'])
@@ -175,34 +175,42 @@ def app():
                     else :
                         probability = False
 
-
                     model = SVC(kernel=kernel,gamma=gamma,probability=probability).fit(X_train, y_train)   
                     y_pred = model.predict(X_test)
+                elif model_selection == 'Linear Regression':
+                    st.markdown('### Hyper parametrs setting')
+                    cal_inter = st.checkbox('Fit intercept ?')
+                    normalize = False
+                    if cal_inter:
+                        normalize = st.checkbox('Normalize data ?')
+                    model = LinearRegression(fit_intercept=cal_inter,normalize=normalize).fit(X_train,y_train)
+                    y_pred = model.predict(X_test)
+                    
 
-
-                st.markdown("################Training ########################")
+                st.markdown("################ Training ########################")
                 
                 ##Evaluation Metrics
-                if y_pred != [] :
-                    st.markdown(f"Accuracy Score: {accuracy_score(y_test, y_pred)}")
-                    st.markdown(f"Recall Score: {recall_score(y_test, y_pred, average='macro')}")
-                    st.markdown(f"Precision Score: {precision_score(y_test,y_pred,average='macro')}")
-                    st.markdown(f"F1 Score: {f1_score(y_test,y_pred,average='macro')}")
-                    st.markdown(f"AUC: {roc_auc_score(y_test,y_pred,average='macro')}")
+                if pred_type =='Classification':
+                    if y_pred != [] :
+                        st.markdown(f"Accuracy Score: {accuracy_score(y_test, y_pred)}")
+                        st.markdown(f"Recall Score: {recall_score(y_test, y_pred, average='macro')}")
+                        st.markdown(f"Precision Score: {precision_score(y_test,y_pred,average='macro')}")
+                        st.markdown(f"F1 Score: {f1_score(y_test,y_pred,average='macro')}")
+                        st.markdown(f"AUC: {roc_auc_score(y_test,y_pred,average='macro')}")
 
-                    st.subheader("Confusion Matrix") 
-                    plot_confusion_matrix(model, X_test, y_test, display_labels=np.unique(y))
-                    st.pyplot()
-
-
-                    st.subheader("ROC Curve") 
-                    plot_roc_curve(model, X_test, y_test)
-                    st.pyplot()
+                        st.subheader("Confusion Matrix") 
+                        plot_confusion_matrix(model, X_test, y_test, display_labels=np.unique(y))
+                        st.pyplot()
 
 
-                    st.subheader("Precision-Recall Curve")
-                    plot_precision_recall_curve(model, X_test, y_test)
-                    st.pyplot()
+                        st.subheader("ROC Curve") 
+                        plot_roc_curve(model, X_test, y_test)
+                        st.pyplot()
 
-                
+
+                        st.subheader("Precision-Recall Curve")
+                        plot_precision_recall_curve(model, X_test, y_test)
+                        st.pyplot()
+                else:
+                    st.markdown('comming soon')
             

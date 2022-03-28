@@ -5,6 +5,7 @@ from pandas.api.types import is_numeric_dtype
 import numpy as np
 import time
 
+dummify=False
 
 def chg_type():
     global df_last

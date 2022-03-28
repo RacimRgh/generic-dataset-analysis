@@ -28,7 +28,7 @@ class ClassificationPlot:
             confusion_matrix=cm, display_labels=classes)
         fig = cm_display.plot(include_values=True, xticks_rotation='vertical')
         return fig
-
+    
 
 # def plot_metrics(x_test, y_test):
 
