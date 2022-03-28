@@ -28,7 +28,45 @@ from pandas.api.types import is_numeric_dtype
 
 from utils.visualisation import RegressionPlot
 
+def evaclass(model,y_pred,y_test,X_test):
+    if y_pred != []:
+        st.markdown(
+            f"Accuracy Score: {accuracy_score(y_test, y_pred)}")
+        st.markdown(
+            f"Recall Score: {recall_score(y_test, y_pred, average='macro')}")
+        st.markdown(
+            f"Precision Score: {precision_score(y_test,y_pred,average='macro')}")
+        st.markdown(
+            f"F1 Score: {f1_score(y_test,y_pred,average='macro')}")
+        if len(np.unique(y_test))==2:
+            st.markdown(f"AUC: {roc_auc_score(y_test,y_pred,average='macro',multi_class='ovr')}")
+        st.subheader("Confusion Matrix")
+        disp = plot_confusion_matrix(
+            model, X_test, y_test, display_labels=np.unique(y_test))
+        st.pyplot(disp.plot().figure_)
+        if len(np.unique(y_test))==2:
+            st.subheader("ROC Curve")
 
+            st.pyplot(
+                plot_roc_curve(model, X_test, y_test).figure_
+            )
+            st.subheader("Precision-Recall Curve")
+
+            st.pyplot(
+                plot_precision_recall_curve(
+                    model, X_test, y_test).figure_
+            )
+def evaReg(y_pred,y_test):
+    st.markdown(f"R^2 score: {r2_score(y_test, y_pred)}")
+    st.markdown(
+        f"Mean absolute error Score: {mean_absolute_error(y_test,y_pred)}")
+    st.markdown(
+        f"Mean squared error Score: {mean_squared_error(y_test,y_pred)}")
+    st.markdown(
+        f"Explained variance score Score: {explained_variance_score(y_test,y_pred)}")
+    st.pyplot(
+        RegressionPlot.predict_regression_plot(y_test, y_pred))
+                
 def app():
     """This application helps in running machine learning models without having to write explicit code 
     by the user. It runs some basic models and let's the user select the X and y variables. 
@@ -117,24 +155,14 @@ def app():
 
             ''' RUNNING THE MACHINE LEARNING MODELS '''
 
-            st.markdown("### Model Selection")
-
-            classification_model_list = [' ', 'Logistic Regression',
-                                         'Decision Tree',
-                                         'Support Vector Machines']
-            regression_model_list = [
-                ' ', 'Linear Regression', 'Decision Tree Reg', 'Gradient Boosting Reg']
-            # models_list need to change with the pred_type
-            models_list = classification_model_list if pred_type == 'Classification' else regression_model_list
-            model_selection = st.selectbox("Select a model ", models_list)
-
+            st.markdown("### Model Comparison")
+            st.markdown('### Hyper parametrs setting')
             y_pred = []
+            col1, col2, col3 = st.columns(3)
 
-            if model_selection == ' ':
-                pass
-            else:
-                st.markdown('### Hyper parametrs setting')
-                if model_selection == "Logistic Regression":
+            with col1 :
+                if pred_type == 'Classification':
+                    st.markdown('## Logistic Regression')
                     penalty = st.selectbox(
                         "Penalty:", ['none', 'l1', 'l2', 'elasticnet'])
                     solver = st.selectbox(
@@ -143,10 +171,23 @@ def app():
                     multiclass_opt = st.selectbox(
                         "Multiclass:", ['auto', 'ovr', 'multinomial'])
 
-                    model = LogisticRegression(random_state=0, penalty=penalty, solver=solver,
-                                               max_iter=max_iter, multi_class=multiclass_opt).fit(X_train, y_train)
-
-                elif model_selection == "Decision Tree":
+                    model1 = LogisticRegression(random_state=0, penalty=penalty, solver=solver,
+                                            max_iter=max_iter, multi_class=multiclass_opt).fit(X_train, y_train)
+                    y_pred1 = model1.predict(X_test)
+                    evaclass(model1,y_pred1,y_test,X_test)
+                else:
+                    st.markdown('## Linear Regression')
+                    cal_inter = st.checkbox('Fit intercept ?')
+                    normalize = False
+                    if cal_inter:
+                        normalize = st.checkbox('Normalize data ?')
+                    model1 = LinearRegression(
+                        fit_intercept=cal_inter, normalize=normalize).fit(X_train, y_train)
+                    y_pred1 = model1.predict(X_test)
+                    evaReg(y_pred1,y_test)
+            with col2:
+                if pred_type == 'Classification':
+                    st.markdown('## Decission Tree CLassifier')
                     criterion = st.selectbox("Criterion", ['gini', 'entropy'])
                     splitter = st.selectbox("Splitter", ['best', 'random'])
                     max_depth = st.number_input("Max_depth")
@@ -157,31 +198,12 @@ def app():
 
                     if max_depth != 0:
                         st.write(f"{max_depth}")
-                        model = DecisionTreeClassifier(
+                        model2 = DecisionTreeClassifier(
                             criterion=criterion, splitter=splitter, max_depth=int(max_depth)).fit(X_train, y_train)
-
-                elif model_selection == "Support Vector Machines":
-                    # SVM Model
-                    kernel = st.selectbox(
-                        "Kernel", ['linear', 'poly', 'rbf', 'sigmoid', 'precomputed'])
-                    gamma = st.selectbox("Gamma", ['auto', 'scale'])
-                    probability = st.selectbox("Probability", ['On', 'Off'])
-                    if probability == "On":
-                        probability = True
-                    else:
-                        probability = False
-
-                    model = SVC(kernel=kernel, gamma=gamma,
-                                probability=probability).fit(X_train, y_train)
-
-                elif model_selection == 'Linear Regression':
-                    cal_inter = st.checkbox('Fit intercept ?')
-                    normalize = False
-                    if cal_inter:
-                        normalize = st.checkbox('Normalize data ?')
-                    model = LinearRegression(
-                        fit_intercept=cal_inter, normalize=normalize).fit(X_train, y_train)
-                elif model_selection == 'Decision Tree Reg':
+                        y_pred2 = model2.predict(X_test)
+                        evaclass(model2,y_pred2,y_test,X_test)
+                else:
+                    st.markdown('## Decision Tree Regressor')
                     criterion = st.selectbox(
                         "Criterion", ['squared_error', 'friedman_mse', 'absolute_error', 'poisson'])
                     splitter = st.selectbox("Splitter", ['best', 'random'])
@@ -192,9 +214,29 @@ def app():
 
                     if max_depth != 0:
                         st.write(f"{max_depth}")
-                        model = DecisionTreeRegressor(criterion=criterion, splitter=splitter, max_depth=int(
+                        model2 = DecisionTreeRegressor(criterion=criterion, splitter=splitter, max_depth=int(
                             max_depth)).fit(X_train, y_train)
-                elif model_selection == 'Gradient Boosting Reg':
+                        y_pred2 = model2.predict(X_test)
+                        evaReg(y_pred2,y_test)
+            with col3:
+                if pred_type == 'Classification':
+                    # SVM Model
+                    st.markdown('## Support Vector Machine')
+                    kernel = st.selectbox(
+                        "Kernel", ['linear', 'poly', 'rbf', 'sigmoid', 'precomputed'])
+                    gamma = st.selectbox("Gamma", ['auto', 'scale'])
+                    probability = st.selectbox("Probability", ['On', 'Off'])
+                    if probability == "On":
+                        probability = True
+                    else:
+                        probability = False
+
+                    model3 = SVC(kernel=kernel, gamma=gamma,
+                                probability=probability).fit(X_train, y_train)
+                    y_pred3 = model3.predict(X_test)
+                    evaclass(model3,y_pred3,y_test,X_test)
+                else:
+                    st.markdown('## Light Gradient Boosting')
                     learning_rate = st.selectbox(
                         'learning rate', [0.0001, 0.001, 0.01, 0.1, 1.0, 'other'])
                     if learning_rate == 'other':
@@ -212,53 +254,7 @@ def app():
                         Gradient Boosting Decision Tree (GDBT).\
                         Dropouts meet Multiple Additive Regression Trees (DART).\
                         Gradient-based One-Side Sampling (GOSS).")
-                    model = LGBMRegressor(boosting_type=boosting_type, learning_rate=float(learning_rate), num_leaves=num_leaves, n_estimators=n_estimators)\
+                    model3 = LGBMRegressor(boosting_type=boosting_type, learning_rate=float(learning_rate), num_leaves=num_leaves, n_estimators=n_estimators)\
                         .fit(X_train, y_train)
-                y_pred = model.predict(X_test)
-
-                st.markdown(
-                    "################ Training ########################")
-
-                # Evaluation Metrics
-                if pred_type == 'Classification':
-                    if y_pred != []:
-                        st.markdown(
-                            f"Accuracy Score: {accuracy_score(y_test, y_pred)}")
-                        st.markdown(
-                            f"Recall Score: {recall_score(y_test, y_pred, average='macro')}")
-                        st.markdown(
-                            f"Precision Score: {precision_score(y_test,y_pred,average='macro')}")
-                        st.markdown(
-                            f"F1 Score: {f1_score(y_test,y_pred,average='macro')}")
-
-                        # st.markdown(
-                        #     f"AUC: {roc_auc_score(y_test,y_pred,average='macro',multi_class='ovr')}")
-
-                        st.subheader("Confusion Matrix")
-                        disp = plot_confusion_matrix(
-                            model, X_test, y_test, display_labels=np.unique(y))
-                        st.pyplot(disp.plot().figure_)
-
-                        st.subheader("ROC Curve")
-
-                        st.pyplot(
-                            plot_roc_curve(model, X_test, y_test).figure_
-                        )
-
-                        st.subheader("Precision-Recall Curve")
-
-                        st.pyplot(
-                            plot_precision_recall_curve(
-                                model, X_test, y_test).figure_
-                        )
-                else:
-                    #r2_score, mean_absolute_error,explained_variance_score,mean_squared_error
-                    st.markdown(f"R^2 score: {r2_score(y_test, y_pred)}")
-                    st.markdown(
-                        f"Mean absolute error Score: {mean_absolute_error(y_test,y_pred)}")
-                    st.markdown(
-                        f"Mean squared error Score: {mean_squared_error(y_test,y_pred)}")
-                    st.markdown(
-                        f"Explained variance score Score: {explained_variance_score(y_test,y_pred)}")
-                    st.pyplot(
-                        RegressionPlot.predict_regression_plot(y_test, y_pred))
+                    y_pred3 = model3.predict(X_test)
+                    evaReg(y_pred3,y_test)

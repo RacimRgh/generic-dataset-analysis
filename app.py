@@ -1,6 +1,6 @@
 import streamlit as st
 from utils.multipage import MultiPage
-from pages import load_data, preprocess, machine_learning, analysis_unidimensional, analysis_multidim, pca
+from pages import load_data, preprocess, machine_learning, analysis_unidimensional, analysis_multidim, pca, model_comparison
 
 st.set_page_config(layout="wide")
 
@@ -16,6 +16,7 @@ app.add_page("Preprocessing", preprocess.app)
 app.add_page("Unidimensional analysis", analysis_unidimensional.app)
 app.add_page("Multidimensional analysis", analysis_multidim.app)
 app.add_page("Machine Learning", machine_learning.app)
+app.add_page("Model comparison", model_comparison.app)
 app.add_page("Dimension reduction with PCA", pca.app)
 
 # The main app

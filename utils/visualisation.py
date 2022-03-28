@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.metrics import mean_squared_error
 from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
+from sklearn.metrics import roc_curve, auc
 
 
 class RegressionPlot:
@@ -24,6 +25,17 @@ class ClassificationPlot:
             confusion_matrix=cm, display_labels=classes)
         fig = cm_display.plot(include_values=True, xticks_rotation='vertical')
         return fig
+    def plot_roc_cruv_mc(y_true,y_pred):
+        plt.figure()
+        plt.plot(
+            y_true,
+            y_pred,
+            # label="micro-average ROC curve (area = {0:0.2f})".format(roc_auc["micro"]),
+            color="deeppink",
+            linestyle=":",
+            linewidth=4,
+)
+
     
 
 # def plot_metrics(x_test, y_test):
