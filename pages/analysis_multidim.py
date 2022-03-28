@@ -6,6 +6,8 @@ import seaborn as sns
 import os
 from collections import Counter
 import plotly.express as px
+sns.set_theme(style="ticks", color_codes=True)
+
 
 font = {
     'weight': 'bold',
@@ -41,9 +43,10 @@ def app():
         num = st.multiselect("Select numerical columns ", numerical)
 
         cats = st.multiselect("Select categorical columns ", categorical)
-
-        if len(num) > 0:
-            st.title("Distribution of numerical columns by numerical data")
+        num = ['EnvironmentSatisfaction']
+        cats = ['EducationField']
+        if len(num) > 1:
+            st.title("Boxplots of numerical columns by numerical data")
             for x in num:
                 for y in num:
                     if x != y:
@@ -52,7 +55,7 @@ def app():
                         st.plotly_chart(fig3)
 
         if len(cats) > 1:
-            st.header("Distribution of categorical columns by categorical data")
+            st.header("Piecharts of categorical columns by categorical data")
             uniques = [np.unique(df[c]) for c in cats]
 
             for i in range(1, len(cats)):
@@ -69,21 +72,16 @@ def app():
                     st.pyplot(fig)
 
         if len(num) > 0 and len(cats) > 0:
-            st.title("Distribution of numerical columns by categorical data")
+            st.title("Histograms of numerical columns by categorical data")
+            choice = st.selectbox("Selection type of graph", [
+                                  "Catplot", "Boxplot"])
             for c in cats:
                 uniques = np.unique(df[c])
-                dfs = []
-                # We get the dataframes by unique category
-                for u in uniques:
-                    dfs.append(df[df[c] == u])
-
                 for n in num:
-                    fig = plt.figure(figsize=(20, 20))
-                    ax = fig.add_subplot()
-                    # ax.figure
-                    binwidth = (max(df[n]) - min(df[n]))/50
-                    ax.hist([dfs[0][n], dfs[1][n]], dfs[2][n], bins=np.arange(min(df[n]), max(
-                        df[n]) + binwidth, binwidth), alpha=0.5, stacked=True, label=uniques, color=['r', 'g'])
-                    ax.legend(loc='upper right')
-                    ax.set_title(n)
+                    if choice == 'Catplot':
+                        fig = sns.catplot(x=c, y=n, data=df)
+                    elif choice == 'Boxplot':
+                        fig = sns.catplot(x=c, y=n,
+                                          kind="box", data=df)
+                    fig.set_xticklabels(rotation=30)
                     st.pyplot(fig)
