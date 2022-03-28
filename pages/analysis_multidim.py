@@ -43,8 +43,6 @@ def app():
         num = st.multiselect("Select numerical columns ", numerical)
 
         cats = st.multiselect("Select categorical columns ", categorical)
-        num = ['EnvironmentSatisfaction']
-        cats = ['EducationField']
         if len(num) > 1:
             st.title("Boxplots of numerical columns by numerical data")
             for x in num:
