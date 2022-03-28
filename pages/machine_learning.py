@@ -230,27 +230,27 @@ def app():
                             f"Precision Score: {precision_score(y_test,y_pred,average='macro')}")
                         st.markdown(
                             f"F1 Score: {f1_score(y_test,y_pred,average='macro')}")
-
-                        # st.markdown(
-                        #     f"AUC: {roc_auc_score(y_test,y_pred,average='macro',multi_class='ovr')}")
+                        if len(np.unique(y_test))==2:
+                            st.markdown(
+                                f"AUC: {roc_auc_score(y_test,y_pred,average='macro',multi_class='ovr')}")
 
                         st.subheader("Confusion Matrix")
                         disp = plot_confusion_matrix(
                             model, X_test, y_test, display_labels=np.unique(y))
                         st.pyplot(disp.plot().figure_)
 
-                        st.subheader("ROC Curve")
+                        if len(np.unique(y_test))==2:
+                            st.subheader("ROC Curve")
 
-                        st.pyplot(
-                            plot_roc_curve(model, X_test, y_test).figure_
-                        )
+                            st.pyplot(
+                                plot_roc_curve(model, X_test, y_test).figure_
+                            )
+                            st.subheader("Precision-Recall Curve")
 
-                        st.subheader("Precision-Recall Curve")
-
-                        st.pyplot(
-                            plot_precision_recall_curve(
-                                model, X_test, y_test).figure_
-                        )
+                            st.pyplot(
+                                plot_precision_recall_curve(
+                                    model, X_test, y_test).figure_
+                            )
                 else:
                     #r2_score, mean_absolute_error,explained_variance_score,mean_squared_error
                     st.markdown(f"R^2 score: {r2_score(y_test, y_pred)}")
