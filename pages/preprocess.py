@@ -6,12 +6,20 @@ import numpy as np
 import time
 from sklearn.preprocessing import LabelEncoder as le
 from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import MinMaxScaler
 
 
-def normalize_column(df, df_last):
+def standardise_column(df, df_last):
     df_last = df.copy()
     df = StandardScaler().fit_transform(df)
     return df, df_last
+
+
+def normalise_column(df, df_last):
+    min_max_scaler = MinMaxScaler()
+    x_scaled = min_max_scaler.fit_transform(df)
+    df_normalized = pd.DataFrame(x_scaled)
+    return df_normalized, df_last
 
 
 def chg_type(df, df_last, newtype, column_name):
@@ -77,7 +85,7 @@ def app():
     else:
         with st.spinner("Loading the cached dataset, please wait..."):
             df = pd.read_csv('data.csv')
-            df_og = df.copy()
+            df.to_csv('data_og.csv', index=False)
             df_last = df.copy()
 
         st.title('Preprocessing')
@@ -167,40 +175,47 @@ def app():
 
         st.markdown('## Ratio of different values and dummification')
 
-        col1, col2, col3, col4, col5, col6, col7 = st.columns(7)
+        col1, col2, col3, col4, col5, col6, col7, col8 = st.columns(8)
         col1.metric(label="Total number of values", value=len(df[column_name]),
                     delta_color="off")
         col2.metric(label="Number of different values", value=len(np.unique(df[column_name])),
                     delta_color="off")
+
         if col6.button("Dummify current column", key=current_index):
             with st.spinner("Please wait ..."):
                 df, df_last = dumm(df, df_last, column_name)
                 time.sleep(1)
                 st.success("Your changes have been made!")
-
-        if col7.button("Normalise the column"):
-            with st.spinner("Please wait ..."):
-                df, df_last = dumm(df, df_last, column_name)
-                time.sleep(1)
-                st.success("Your changes have been made!")
-
-        b1, b2, b3, b4, b5 = st.columns(5)
-        if b2.button("Revert last change"):
-            df = df_last.copy()
-            df.to_csv('data.csv', index=False)
-            st.success("Your changes have been Reverted!")
-
-        if b3.button("Revert all changes"):
-            df = df_og.copy()
-            df.to_csv('data.csv', index=False)
-            st.success("Your changes have been reverted!")
-
-        if b4.button("Delete current column"):
+        if col7.button("Delete current column"):
             with st.spinner("Processing..."):
                 df_last = df.copy()
                 df.drop(column_name, inplace=True, axis=1)
                 df.to_csv('data.csv', index=False)
             st.success("Your changes have been made!")
+
+        b1, b2, b3, b4, b5, b6, b7, b8 = st.columns(8)
+
+        if b5.button("Standardise dataset"):
+            with st.spinner("Please wait ..."):
+                df, df_last = standardise_column(df, df_last)
+                time.sleep(1)
+                st.success("Your changes have been made!")
+
+        if b6.button("Normalise dataset"):
+            with st.spinner("Please wait ..."):
+                df, df_last = normalise_column(df, df_last)
+                time.sleep(1)
+                st.success("Your changes have been made!")
+
+        if b7.button("Revert last change"):
+            df = df_last.copy()
+            df.to_csv('data.csv', index=False)
+            st.success("Your changes have been Reverted!")
+
+        if b8.button("Revert all changes"):
+            df_og = pd.read_csv('data_og.csv')
+            df.to_csv('data.csv', index=False)
+            st.success("Your changes have been reverted!")
 
         st.markdown('## Dataframe columns and types')
         c = st.columns(6)
