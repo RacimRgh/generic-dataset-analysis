@@ -18,7 +18,6 @@ def app():
             include=['object']).columns.values
         numerical = df_visual.select_dtypes(include=[np.number]).columns.values
 
-    # num = st.multiselect("Select numerical columns ", numerical)
     cats = st.selectbox("Select categorical columns ", categorical)
     st.markdown("#### Variance expliquee ")
     var = st.slider("Percentage explained variance",
@@ -34,7 +33,15 @@ def app():
     pca = PCA(n_components=var)
     pca.fit(df2)
     df_p = pca.fit_transform(df2)
-    # st.dataframe(df_p)
     if cats:
+        st.title(
+            'Presentation de la reduction en deux dimensions(2 premiers composants principaux)')
         fig = px.scatter(df_p, x=0, y=1, color=df_visual[cats])
         st.write(fig)
+        st.title(
+            'Presentation de la reduction en trois dimensions(3 premiers composants principaux)')
+        fig2 = px.scatter_3d(
+            df_p, x=0, y=1, z=2,
+            labels={'0': ' PCA1', '1': 'PCA2', '2': 'PCA3'},
+            color=df_visual[cats])
+        st.write(fig2)
