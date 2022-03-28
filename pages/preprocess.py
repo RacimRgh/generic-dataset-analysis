@@ -1,4 +1,3 @@
-from pyparsing import col
 import streamlit as st
 import os
 import pandas as pd
@@ -6,6 +5,13 @@ from pandas.api.types import is_numeric_dtype
 import numpy as np
 import time
 from sklearn.preprocessing import LabelEncoder as le
+from sklearn.preprocessing import StandardScaler
+
+
+def normalize_column(df, df_last):
+    df_last = df.copy()
+    df = StandardScaler().fit_transform(df)
+    return df, df_last
 
 
 def chg_type(df, df_last, newtype, column_name):
@@ -109,9 +115,11 @@ def app():
         e1, e2, e3 = st.columns(3)
         e1.write("""Select your column column_name and the new type from the data.
                     To submit all the changes, click on *Submit changes* """)
+
         if e2.button("Change Column Type"):
             with st.spinner("Modifying type..."):
                 df, df_last = chg_type(df, df_last, newtype, column_name)
+
         if e3.button("Change column name"):
             df.rename(columns={column_name: newname}, inplace=True)
         """
@@ -127,11 +135,11 @@ def app():
             for d in df.columns:
                 if df[d].isna().sum():
                     if j == 0:
-                        col1.write(d)
+                        col1.info(d)
                     elif j == 1:
-                        col2.write(d)
+                        col2.info(d)
                     else:
-                        col3.write(d)
+                        col3.info(d)
                         j = 0
                     j += 1
 
@@ -159,12 +167,18 @@ def app():
 
         st.markdown('## Ratio of different values and dummification')
 
-        col1, col2, col3, col4, col5, col6 = st.columns(6)
+        col1, col2, col3, col4, col5, col6, col7 = st.columns(7)
         col1.metric(label="Total number of values", value=len(df[column_name]),
                     delta_color="off")
         col2.metric(label="Number of different values", value=len(np.unique(df[column_name])),
                     delta_color="off")
         if col6.button("Dummify current column", key=current_index):
+            with st.spinner("Please wait ..."):
+                df, df_last = dumm(df, df_last, column_name)
+                time.sleep(1)
+                st.success("Your changes have been made!")
+
+        if col7.button("Normalise the column"):
             with st.spinner("Please wait ..."):
                 df, df_last = dumm(df, df_last, column_name)
                 time.sleep(1)

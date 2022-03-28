@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 import time
-import dummy
 
 
 def app():
@@ -14,8 +13,6 @@ def app():
 
     st.title("Uploading dataset")
     st.subheader("File")
-    st.write(
-        '<style>div.row-widget.stRadio > div{flex-direction:row;} </style>', unsafe_allow_html=True)
 
     c1, c2 = st.columns(2)
     choice = c1.radio("Select file type", ["CSV", "XLS", ".data"])
