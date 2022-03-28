@@ -7,7 +7,10 @@ import dummy
 def app():
     st.title("Uploading dataset")
     st.subheader("File")
-    data_file = st.file_uploader("Upload CSV", type=["csv"])
+
+    choice = st.radio("Select file type", ["CSV", "XLS", ".data"])
+
+    data_file = st.file_uploader("Upload file")
     global df
 
     if data_file is not None:
@@ -16,7 +19,12 @@ def app():
                         "filesize": data_file.size}
 
         st.write(file_details)
-        df = pd.read_csv(data_file)
+        if choice == "CSV":
+            df = pd.read_csv(data_file)
+        elif choice == "XLS":
+            df = pd.read_excel(data_file)
+            df = df.astype(str)
+        print(df.dtypes)
         st.dataframe(df)
         with st.spinner("Loading the dataset, please wait..."):
             df.to_csv('data.csv', index=False)

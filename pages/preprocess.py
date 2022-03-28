@@ -1,9 +1,11 @@
+from pyparsing import col
 import streamlit as st
 import os
 import pandas as pd
 from pandas.api.types import is_numeric_dtype
 import numpy as np
 import time
+from sklearn.preprocessing import LabelEncoder as le
 
 
 def chg_type(df, df_last, newtype, column_name):
@@ -79,31 +81,39 @@ def app():
         """
         st.markdown("## Change dataframe columns")
         # Use two column technique
-        col1, col2 = st.columns(2)
+        col1, col2, col3 = st.columns(3)
 
         column_name = col1.selectbox("Select Column", df.columns)
 
         if is_numeric_dtype(df[column_name]):
             current_type = 'numerical'
         else:
-            if len(np.unique(df[column_name])) < 0.2 * len(df[column_name]):
+            try:
+                numvals = len(np.unique(df[column_name])
+                              ) < 0.2 * len(df[column_name])
+            except Exception as ex:
+                df[column_name] = le().fit_transform(df[column_name])
+                numvals = len(np.unique(df[column_name])
+                              ) < 0.2 * len(df[column_name])
+            if numvals:
                 current_type = 'categorical'
             else:
                 current_type = 'object'
 
         column_options = ['numerical', 'categorical', 'object']
         current_index = column_options.index(current_type)
-
         newtype = col2.selectbox("Select Column Type",
                                  options=column_options, index=current_index)
+        newname = col3.text_input('New column name', value=column_name)
 
-        e1, e2 = st.columns(2)
+        e1, e2, e3 = st.columns(3)
         e1.write("""Select your column column_name and the new type from the data.
                     To submit all the changes, click on *Submit changes* """)
         if e2.button("Change Column Type"):
             with st.spinner("Modifying type..."):
                 df, df_last = chg_type(df, df_last, newtype, column_name)
-
+        if e3.button("Change column name"):
+            df.rename(columns={column_name: newname}, inplace=True)
         """
             Check for NA values and show the choices if they exist
                 - Drop rows containing at least one NA value
