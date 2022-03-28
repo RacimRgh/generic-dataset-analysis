@@ -5,10 +5,8 @@ from pandas.api.types import is_numeric_dtype
 import numpy as np
 import time
 
-dummify=False
 
-def chg_type():
-    global df_last
+def chg_type(df, df_last, newtype, column_name):
     df_last = df.copy()
 
     if newtype == 'numerical':
@@ -17,37 +15,35 @@ def chg_type():
         df = df.astype({column_name: str}, errors='ignore')
     elif newtype == 'categorical':
         df = df.astype({column_name: 'category'}, errors='ignore')
+
     df.to_csv('data.csv', index=False)
     st.success("Your changes have been made!")
+    return df, df_last
 
 
-def dumm():
-    global dummify, df, df_last
+def dumm(df, df_last, column_name):
     df_last = df.copy()
-    if dummify:
-        df = pd.get_dummies(df, columns=[column_name])
-        df.to_csv('data.csv', index=False)
-        dummify = False
+    df = pd.get_dummies(df, columns=[column_name])
+    df.to_csv('data.csv', index=False)
+    return df, df_last
 
 
-def onSubmit():
-    global df_last, df, del_na
+def onSubmit(df, df_last, del_na, replace_vals, new_num_val, new_cat_val):
     df_last = df.copy()
+    categorical = df.select_dtypes(
+        include=['object']).columns.values
+    numerical = df.select_dtypes(include=[np.number]).columns.values
 
-    if del_na == "Drop column":
-        for column in df.columns:
-            if df[column].isna().sum():
-                df.dropna(subset=[column], inplace=True, axis=1)
+    if del_na == "Drop columns":
+        df.dropna(axis="columns", how="any", inplace=True)
 
     elif del_na == "Drop rows":
-        for column in df.columns:
-            if df[column].isna().sum():
-                df.dropna(subset=[column], inplace=True, axis=0)
+        df.dropna(axis="rows", how="any", inplace=True)
 
     elif del_na == "Replace values":
         for num in numerical:
             if replace_vals == "Average/Most frequent":
-                new_na_val = df[column].mean()
+                new_na_val = df[num].mean()
                 df[num] = df[num].fillna(new_na_val)
 
             elif replace_vals == "Interpolation":
@@ -63,25 +59,24 @@ def onSubmit():
             elif replace_vals == "Value":
                 df[cat].fillna(new_cat_val)
 
-    del_na = False
     df.to_csv('data.csv', index=False)
+    return df, df_last
 
 
 def app():
     if 'data.csv' not in os.listdir(os.getcwd()):
         st.markdown("Please upload data through `Upload Data` page!")
     else:
-        global df, df_og, df_last, column_name, newtype, dummify, del_na, replace_vals, new_na_val, numerical, categorical, new_num_val, new_cat_val
         with st.spinner("Loading the cached dataset, please wait..."):
             df = pd.read_csv('data.csv')
             df_og = df.copy()
             df_last = df.copy()
 
-        categorical = df.select_dtypes(
-            include=['object']).columns.values
-        numerical = df.select_dtypes(include=[np.number]).columns.values
-
         st.title('Preprocessing')
+
+        """
+        Change the columns types one by one
+        """
         st.markdown("## Change dataframe columns")
         # Use two column technique
         col1, col2 = st.columns(2)
@@ -106,30 +101,36 @@ def app():
         e1.write("""Select your column column_name and the new type from the data.
                     To submit all the changes, click on *Submit changes* """)
         if e2.button("Change Column Type"):
-            chg_type(newtype)
+            with st.spinner("Modifying type..."):
+                df, df_last = chg_type(df, df_last, newtype, column_name)
 
-        if pd.isna(df).any().any():
-            st.markdown("## List of columns with NA values: ")
-            col1, col2, col3, col4 = st.columns(4)
-            j = 1
-            for d in df.columns:
-                if df[d].isna().sum():
-                    if j == 1:
-                        col1.write(d)
-                    else:
-                        col2.write(d)
-                    j *= -1
-            """
+        """
             Check for NA values and show the choices if they exist
                 - Drop rows containing at least one NA value
                 - Drop the entire column containing NA values
                 - Replace the values with: Average/Most frequent, Interpolation (num), Typing
             """
+        if pd.isna(df).any().any():
+            st.markdown("## List of columns with NA values: ")
+            col1, col2, col3, col4, col5, col6 = st.columns(6)
+            j = 0
+            for d in df.columns:
+                if df[d].isna().sum():
+                    if j == 0:
+                        col1.write(d)
+                    elif j == 1:
+                        col2.write(d)
+                    else:
+                        col3.write(d)
+                        j = 0
+                    j += 1
+
             if len([d for d in df.columns if df[d].isna().sum()]) > 0:
-                del_na = col3.radio(
+                replace_vals, new_cat_val, new_num_val = None, None, None
+                del_na = col4.radio(
                     "Action:", ("Drop rows", "Drop columns", "Replace values"))
                 if del_na == 'Replace values':
-                    replace_vals = col4.radio(
+                    replace_vals = col5.radio(
                         "With:", ("Average/Most frequent", "Interpolation", "Value"))
                     if replace_vals == "Value":
                         new_num_val = st.text_input(
@@ -140,20 +141,22 @@ def app():
             b1, b2, b3, b4, b5 = st.columns(5)
             if b5.button("Submit"):
                 with st.spinner("Please wait ..."):
-                    onSubmit()
+                    df, df_last = onSubmit(
+                        df, df_last, del_na, replace_vals, new_num_val, new_cat_val)
                     time.sleep(1)
+                    df = pd.read_csv('data.csv')
                     st.success("Your changes have been made!")
 
         st.markdown('## Ratio of different values and dummification')
 
-        col1, col2, col3, col4 = st.columns(4)
+        col1, col2, col3, col4, col5, col6 = st.columns(6)
         col1.metric(label="Total number of values", value=len(df[column_name]),
                     delta_color="off")
         col2.metric(label="Number of different values", value=len(np.unique(df[column_name])),
                     delta_color="off")
-        if col3.button("Dummify current column", key=current_index):
+        if col6.button("Dummify current column", key=current_index):
             with st.spinner("Please wait ..."):
-                dumm()
+                df, df_last = dumm(df, df_last, column_name)
                 time.sleep(1)
                 st.success("Your changes have been made!")
 
@@ -162,14 +165,17 @@ def app():
             df = df_last.copy()
             df.to_csv('data.csv', index=False)
             st.success("Your changes have been Reverted!")
+
         if b3.button("Revert all changes"):
             df = df_og.copy()
             df.to_csv('data.csv', index=False)
             st.success("Your changes have been reverted!")
+
         if b4.button("Delete current column"):
-            df_last = df.copy()
-            df.drop(column_name, inplace=True, axis=1)
-            df.to_csv('data.csv', index=False)
+            with st.spinner("Processing..."):
+                df_last = df.copy()
+                df.drop(column_name, inplace=True, axis=1)
+                df.to_csv('data.csv', index=False)
             st.success("Your changes have been made!")
 
         st.markdown('## Dataframe columns and types')

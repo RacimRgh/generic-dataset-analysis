@@ -1,12 +1,11 @@
-import os
 import streamlit as st
-
-# Custom imports
-from multipage import MultiPage
-# import your pages here
+from utils.multipage import MultiPage
 from pages import load_data, preprocess, machine_learning, analysis_unidimensional, analysis_multidim, pca
 
 st.set_page_config(layout="wide")
+
+# Custom imports
+# import your pages here
 
 # Create an instance of the app
 app = MultiPage()
