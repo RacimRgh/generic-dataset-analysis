@@ -25,7 +25,7 @@ from pandas.api.types import is_numeric_dtype
 # import sys  
 # sys.path.append("../utils/")
 
-from utils.visualisation  import plot_metrics
+# from utils.visualisation  import plot_metrics
 
 def app():
     """This application helps in running machine learning models without having to write explicit code 
